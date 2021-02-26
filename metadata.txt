@@ -1,0 +1,46 @@
+# This file contains metadata for your plugin. Since 
+# version 2.0 of QGIS this is the proper way to supply 
+# information about a plugin. The old method of 
+# embedding metadata in __init__.py will 
+# is no longer supported since version 2.0.
+
+# This file should be included when you package your plugin.# Mandatory items:
+
+[general]
+name=PostGIS Queries
+qgisMinimumVersion=3.0
+description=Processing plugin-based provider that adds scripts to execute PostGIS queries using the built-in script "gdal:executesql". Provedor do Processing que inclui scripts para executar consultas do PostGIS usando o script "gdal:executesql".
+            
+               
+version=0.1
+author=Marcel Rotunno (IBGE)
+email=marcel.rotunno@gmail.com
+
+about=The scripts are intended to solve common spatial problems, such as finding dangles and pseudonodes in a line layer. To execute the scripts, a layer with a connection to the PostGIS database must be passed, as well as the table name(s) that store the target layer(s). Depending on the script, other parameters may be required.
+
+      -------------------------------------------------------------------------------------------------------------------------------------
+      
+      Os scripts adicionados procuram resolver problemas espaciais comuns, como achar dangles ou pseudonós em uma camada tipo linha. Para executar os scripts, uma camada com conexão ao PostGIS precisa ser passada, além do(s) nome(s) de tabela que armazenam a(s) camada(s) alvo. Dependendo do script, são requeridos ainda outros parâmetros.
+
+tracker=https://github.com/marcelgaucho/PostGISQueries/issues
+repository=https://github.com/marcelgaucho/PostGISQueries
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+# changelog=
+
+
+# Tags are comma separated with spaces allowed
+tags=processing,provider,PostGIS,queries,IBGE
+
+homepage=https://github.com/marcelgaucho/PostGISQueries
+category=Processing
+icon=images/icon.png
+# experimental flag
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+
