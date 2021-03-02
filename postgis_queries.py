@@ -4,9 +4,8 @@
                            PostGIS Queries
                              --------------------
         begin                : 2021-19-02
-        git sha              : :%H$
         copyright            : (C) 2021 by Marcel Rotunno (IBGE)
-        email                : marcel.rotunno@gmail.com
+        email                : marcelgaucho@yahoo.com.br
  ***************************************************************************/
 /***************************************************************************
  *                                                                         *

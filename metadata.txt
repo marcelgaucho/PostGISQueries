@@ -14,7 +14,7 @@ description=Processing plugin-based provider that adds scripts to execute PostGI
                
 version=0.1
 author=Marcel Rotunno (IBGE)
-email=marcel.rotunno@gmail.com
+email=marcelgaucho@yahoo.com.br
 
 about=The scripts are intended to solve common spatial problems, such as finding dangles and pseudonodes in a line layer. To execute the scripts, a layer with a connection to the PostGIS database must be passed, as well as the table name(s) that store the target layer(s). Depending on the script, other parameters may be required.
 
