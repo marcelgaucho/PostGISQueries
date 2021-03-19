@@ -36,7 +36,7 @@ class FindUndershootOvershoot(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindUndershootOvershoot", string)
 
     def createInstance(self):
         return FindUndershootOvershoot()
@@ -75,7 +75,7 @@ class FindUndershootOvershoot(QgsProcessingAlgorithm):
         # Tolerance
         self.addParameter(QgsProcessingParameterNumber(
             self.TOLERANCE,
-            'Tolerance',
+            self.tr('Tolerance'),
             QgsProcessingParameterNumber.Double,
             0.0001
         ))

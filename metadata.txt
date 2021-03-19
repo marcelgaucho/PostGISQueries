@@ -12,7 +12,7 @@ qgisMinimumVersion=3.0
 description=Processing plugin-based provider that adds scripts to execute PostGIS queries using the built-in script "gdal:executesql". Provedor do Processing que inclui scripts para executar consultas do PostGIS usando o script "gdal:executesql".
             
                
-version=0.1
+version=0.2
 author=Marcel Rotunno (IBGE)
 email=marcelgaucho@yahoo.com.br
 
@@ -29,7 +29,12 @@ repository=https://github.com/marcelgaucho/PostGISQueries
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-# changelog=
+changelog=0.2
+      - Add Portuguese translation
+      
+      0.1
+      - Start of the plugin
+
 
 
 # Tags are comma separated with spaces allowed

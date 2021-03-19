@@ -33,7 +33,7 @@ class FindGaps(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindGaps", string)
 
     def createInstance(self):
         return FindGaps()

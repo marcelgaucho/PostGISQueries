@@ -40,7 +40,7 @@ class FindPseudonodes(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindPseudonodes", string)
 
     def createInstance(self):
         return FindPseudonodes()
@@ -79,7 +79,7 @@ class FindPseudonodes(QgsProcessingAlgorithm):
         # Tolerance - Default is 0.000001 (11 cm in Equator)
         self.addParameter(QgsProcessingParameterNumber(
             self.TOLERANCE,
-            'Tolerance',
+            self.tr('Tolerance'),
             QgsProcessingParameterNumber.Double,
             0.000001
         ))
@@ -103,7 +103,7 @@ class FindPseudonodes(QgsProcessingAlgorithm):
         # Excluded Field from analysis. Adjacent features with the different field 
         # attributes won't be considered pseudonodes                                                 
         self.addParameter(QgsProcessingParameterString(self.FIELD_EXCLUDED,
-                                                       self.tr('Exluded Field'),
+                                                       self.tr('Excluded Field'),
                                                        defaultValue='', optional=True))
                                                        
         # Input Primary Key

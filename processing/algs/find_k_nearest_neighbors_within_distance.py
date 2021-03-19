@@ -39,7 +39,7 @@ class FindKNearestNeighborsWithinDistance(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindKNearestNeighborsWithinDistance", string)
 
     def createInstance(self):
         return FindKNearestNeighborsWithinDistance()
@@ -108,7 +108,7 @@ class FindKNearestNeighborsWithinDistance(QgsProcessingAlgorithm):
         # Tolerance - Default is in degrees and is approximately 111 meters in Equator
         self.addParameter(QgsProcessingParameterNumber(
             self.TOLERANCE,
-            'Tolerance',
+            self.tr('Tolerance'),
             QgsProcessingParameterNumber.Double,
             0.001
         ))                                                       
@@ -116,7 +116,7 @@ class FindKNearestNeighborsWithinDistance(QgsProcessingAlgorithm):
         # K Neighbors. Number of neighbors to find within distance. Default is 1
         self.addParameter(QgsProcessingParameterNumber(
             self.KNEIGHBORS,
-            'Number of neighbors',
+            self.tr('Number of neighbors'),
             QgsProcessingParameterNumber.Integer,
             1
         ))

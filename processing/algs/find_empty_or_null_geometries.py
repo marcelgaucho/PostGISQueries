@@ -34,7 +34,7 @@ class FindEmptyOrNullGeometries(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindEmptyOrNullGeometries", string)
 
     def createInstance(self):
         return FindEmptyOrNullGeometries()

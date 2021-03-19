@@ -35,7 +35,7 @@ class FindOverlapInTwoLayers(QgsProcessingAlgorithm):
         """
         Returns a translatable string with the self.tr() function.
         """
-        return QCoreApplication.translate('Processing', string)
+        return QCoreApplication.translate("PostGIS Queries: FindOverlapInTwoLayers", string)
 
     def createInstance(self):
         return FindOverlapInTwoLayers()
