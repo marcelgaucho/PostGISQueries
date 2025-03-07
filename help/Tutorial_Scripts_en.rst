@@ -14,36 +14,70 @@ Folder.
 
 A folder will open. Then navigate to python/plugins.
 
-Usage
-=====
+It is also possible to install from the QGIS Plugin Manager.
+
+Plugin Behaviour
+================
+
+Each layer passed to the plugin represents a table or a view in the
+database. This table is passed, along with other parameters of the
+script, to perform the SQL query through the script gdal:executesql,
+which returns the result in a spatial layer.
+
+Usage 
+======
 
 It is recommended to leave the script dialog box open after execution to
-detect posible problems. First go to Settings → Options…. Then, on
-Processing → General tab, check the option Keep the dialog open after
-runnin an algorithm.
+find out about possible problems. First go to Settings → Options… .
+Then, in the Processing → General tab, check the option Keep the dialog
+open after running an algorithm.
 
-The usage will be shown with a script, being similar for the others. The
-example will be from the Figure below, used to find overlap between two
-layers.
+In case the script uses more than one layer, the layers must be in the
+same Coordinate Reference System (CRS).
 
--  Input Layer (connection): choose any layer from the layers database.
+The usage will be illustrated with a script, and the information given
+also applies to the other scripts. The example will be from the Figure 1,
+used to find overlap between two layers.
 
--  Table: Table name that refers to the first layer. The name must be
-   accompanied by the schema. For example: bc250.water_body.
+- Input Layer (connection): first input layer for the script. It is also
+  used to identify the database that will perform the query.
+- Second layer: second layer passed to the script. There are cases where
+  more than one layer needs to be passed, as is the case in the example,
+  which detects the overlap between two layers.
+- Minimum Squared Distance: parameter passed to the query, which is in
+  the unit (degree or meter) of the input layer’s CRS.
+- Filter layer (selected features) [optional]: layer of polygon type
+  used as a filter for the input layers. It works by selecting, in the
+  input layer, only those features that intersect the features selected
+  in the current layer. Note that you need to select features in this
+  layer for the script to work, otherwise it returns an error.
+  Furthermore, the use of this layer is optional, so it is possible to
+  leave it empty in order that no filter is applied.
+- Filter Primary Key [optional]: primary key field of the filter layer
+  which, therefore, has a unique value for each feature. The default
+  value is “id”, so it will be automatically selected if the layer
+  contains this field. The field is marked as optional, but if the
+  filter layer is selected, selecting the primary key field becomes
+  mandatory. This field will be used in the query together with its
+  selected values and, therefore, if it does not contain unique values,
+  the results will not be as intended.
+- Output Layer: output layer. Often, it is possible to leave it empty to
+  save to a temporary file, but is also possible to save the result to a
+  specific file to be stored. If the script fails to save the result,
+  try to resolve it by saving the output in a shapefile (\*.shp) or
+  geopackage (\*.gpkg). In the three dots next to it, choose *Save in
+  file…*, change the *Type* to SHP or GPKG files (\*.shp or \*.gpkg),
+  create a name for the file and press to save.
 
--  Table2: Table name that refers to the first layer. The name must be
-   accompanied by the schema. For example: bc250.densely_builtup_area.
+In some scripts, the Input Primary Key is also requested, which is the
+primary key of the input layer, with information similar to the Filter
+Primary Key.
 
--  Output Layer: it is possible to leave it empty to save to a temporary
-   file. If the script fails, try to save the output to a shapefile. At
-   the three points beside, choose Save to File..., change the Type to
-   SHP files (\*.shp), create a name for the file and press Save.
+.. figure:: fig0.PNG
+   :alt: Figure 1: Script to find the overlap between two layers
+   :width: 800
 
--  In some scripts, the Primary Key is also requested. The default value
-   is id. We change the value if the table's primary key has a different
-   name.
-   
-.. image:: fig0.jpg
+   Figure 1: Script to find the overlap between two layers
 
 Available scripts
 =================
@@ -51,178 +85,370 @@ Available scripts
 Find Dangles
 ------------
 
-Finds dangles in a line layer.
+Finds dangles for a line layer. Dangles are line nodes not connected to
+another line.
+
+Input layer (connection): input line layer for algorithm, which
+originates from PostGIS database.
+
+Input Primary Key: primary key field for input layer.
+
+Node Join Tolerance: distance of a node to another line that considers
+the node connected to it.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Empty or NULL Geometries 
------------------------------
+------------------------------
 
-Finds geometries that are Empty geometries or NULL.
+Find layer geometries that are Empty geometries or NULL.
+
+Input layer (connection): input layer for algorithm, which originates
+from PostGIS database.
+
+Input Primary Key: primary key field for input layer.
 
 Find Endpoints that don’t touch polygon 
----------------------------------------
+----------------------------------------
 
-Finds the endpoints in a line layer that don’t touch the boundary of
-polygon layer. A possible application is to find bridges that don’t
-touch the boundary of the water body.
+Find endpoints of a line that don't touch a polygon boundary. A possible
+application of the script is to find bridges that don’t touch the
+boundary of a water body.
+
+Input layer (connection): input line layer for algorithm, which
+originates from PostGIS database.
+
+Polygon layer: polygon layer that relates to the input layer.
+
+Node Join Tolerance: distance of a node or endpoint to a polygon
+boundary that considers the node intersects this boundary.
+
+Filter layer (selected features): polygon layer that filters the input
+and polygon features that intersect the features selected in the filter
+layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Gaps
 ---------
 
-Created for a layer where its polygons must be adjacent, such as a
-county, province or country boundary layer. Gaps are returned as
-polygons.
+For a polygon layer that should have adjacent features, the gaps between
+polygons are returned as polygons.
 
-Find Gaps (2) 
--------------
+This algorithm has the option of selecting features in the input layer,
+for the sake of operation ease. Sometimes we would like to find the gap
+between just two adjacent features, rather than using the entire layer,
+so this options serves that purpose. In addition to this option,
+filtering by selected features in a filter layer of polygon type
+continues to be valid, as in the other algorithms.
 
-Has the same function as the script *Finds gaps*, however this is done
-differently in the code, which can be slower or faster. The gaps are
-returned as lines, and the border lines where there is no adjacent
-polygon are returned, as is the case with islands and boundaries on the
-sea coast.
+Input layer (connection) (use selection if exists): input polygon layer
+for algorithm, which originates from PostGIS database. If features are
+selected in this layer, the algorithm is applied only to these features.
+
+Input Primary Key: primary key field for input layer. If there are
+features selected in the input layer, the input primary key must be
+selected.
+
+Minimum Squared Distance: distance, which squared, represents the
+minimum area allowed for a polygon in the result. For example, taking
+the default value of the field, which is 0.0000001. Assuming that the
+layer CRS is in degrees, this value is equivalent to approximately 11 mm
+at the Equator, and therefore the minimum area of a polygon in the
+result is near to 11 mm\ :sup:`2`.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Geometries Different From Other Layer
 ------------------------------------------
 
-Finds geometries present in the first table (Table) that are not equal
-to some geometry in the second table (Table 2).
+Find geometries of input layer that are different from geometries in the
+second layer.
+
+Input layer (connection): input layer for algorithm, which originates
+from PostGIS database.
+
+Second layer: layer that is compared with the input layer.
+
+Input Primary Key: primary key field for input layer.
+
+Filter layer (selected features): polygon layer that filters the input
+and second layer features that intersect the features selected in the
+filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Geometries With Repeated Vertices 
---------------------------------------
+---------------------------------------
 
-Finds geometries that have repeated vertices.
+Find geometries that have duplicated vertices.
+
+Input layer (connection): input layer for algorithm, which originates
+from PostGIS database.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Invalid Polygons
 ---------------------
 
-Finds polygons invalid according to PostGIS, which uses the OpenGIS
-Simple Features Implementation Specification for SQL 1.1. Invalid
-polygons are those that contain self-intersection or that have rings
-overlapping. In the case of a multipolygon, the polygons that make it up
-must be valid and there must also be no overlap between them, as they
-must touch at most a finite number of points.
+Find invalid polygons for a polygon layer, according to Open Geospatial
+Consortium (OGC) rules, described by OGC Simple Features Implementation
+Specification for SQL 1.1. Briefly, invalid polygons are those that
+contain self-intersection or that have overlapping rings. Rings must be
+contained in the exterior ring and may touch each other, but only as
+tangents. The polygon interior must not be splitted, by rings, in more
+than one part. For a multipolygon, there are similar rules: the
+respective polygons must be valid, there must not be overlap and they
+may touch, but only as tangents. For more detail, refer to PostGIS
+documentation in
 
-According to PostGIS, however, duplicate vertices are allowed, not
-causing the polygons to be invalid.
+https://postgis.net/docs/using_postgis_dbmanagement.html#OGC_Validity .
 
-Find K Nearest Neighbors Whithin Distance 
------------------------------------------
+Input layer (connection): input polygon layer for algorithm, which
+originates from PostGIS database.
 
-Given a certain Input Layer, it detects the K nearest neighbors that are
-in a neighboring layer (Neighbors Layer) and within a certain distance.
-The nearest K neighbors are the K features of the neighbors layer that
-are closest to a feature of the input layer and are at a certain
-distance (tolerance) from that feature.
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
 
-The primary key for both layers needs to be provided.
+Filter Primary Key: primary key field for filter layer.
 
-Tolerance is the limit search radius. Neighbors who are further away
-than tolerance will not be included in the result. The number of
-neighbors (Number of neighbors) refers to the K number of nearest
-neighbors to be found.
+Find K Nearest Neighbors Within Distance
+----------------------------------------
 
-For example, we can find the 3 rural settlements (point type) closest to
-each road segment (line type), with the condition that the detected
-rural settlements must be within 111 meters (0.001 degree). In this
-case, the roads layer will be the Input Layer and rural settlements will
-be the Neighbors Layer. The number of neighbors K will be 3 and the
-tolerance will be 0.001 degree. This means that, for each road segment,
-up to 3 rural settlements will be included in the result, which will be
-the rural settlements closest to that segment and that are at a distance
-of up to 0.001 degree.
+Find the K Nearest Neighbors within certain distance of the features. It
+takes 2 layers. The first is the input layer and the second is the
+neighbors layer. The features returned are from the neighbors layer. For
+each feature of the input layer, the K nearest features from the
+neighbors layer that are within the threshold distance are returned.
+
+Input layer (connection): input layer for algorithm, which originates
+from PostGIS database.
+
+Input Primary Key: primary key field for input layer.
+
+Second layer: neighbors layer, from which features are returned.
+
+Second Layer Primary Key: primary key field for second layer.
+
+Threshold Distance: limit distance from the input layer at which
+features from the second layer are returned. Neighbors that do not
+intersect the search radius designated by the threshold distance will
+not be returned.
+
+Number of neighbors: maximum number of neighbors, for each feature and
+located within the threshold distance, that can be returned.
+
+Filter layer (selected features): polygon layer that filters the input
+and second layer features that intersect the features selected in the
+filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Not Simple Lines (Self-Intersection)
 -----------------------------------------
 
-Finds lines that are not simple. Non-simple lines are characterized by
-containing an auto-intersection. This means that the line intersects the
-line itself at a point that is not one of the endpoints of the line. The
-endpoints of the line are the start and end points.
+Find lines that are not simple. A not simple line is a line that has a
+self-intersection. A not simple multiline is a multiline in which at
+least one of the lines that form it is not simple or in which the lines
+that form it touch at points other than its boundaries.
 
-It is interesting to note that a closed line, in which the end point is
-equal to the start point, is a simple line, since the only place of
-self-intersection of the line is the start point, which is equal to the
-end point.
+Input layer (connection): input line layer for algorithm, which
+originates from PostGIS database.
 
-A multiline is considered simple if all the lines that make it up are
-simple and, in addition, they do not touch each other at points that are
-not at their endpoints.
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Overlap In One Layer 
--------------------------
-
-Used to detect the overlapping of polygons in the same layer, such as
-the polygons that represent the province boundaries.
-
-Find Overlap In Two Layers 
 --------------------------
 
-Used to find overlap between polygons of different layers. For example,
-between built-up area and water body.
+Find the overlap area of distinct polygons in a layer. The result area
+is returned as polygons.
+
+Input layer (connection) (use selection if exists): input polygon layer
+for algorithm, which originates from PostGIS database. If features are
+selected in this layer, the algorithm is applied only to these features.
+
+Input Primary Key: primary key field for input layer. If there are
+features selected in the input layer, the input primary key must be
+selected.
+
+Minimum Squared Distance: distance, which squared, represents the
+minimum area allowed for a polygon in the result. For example, taking
+the default value of the field, which is 0.0000001. Assuming that the
+layer CRS is in degrees, this value is equivalent to approximately 11 mm
+at the Equator, and therefore the minimum area of a polygon in the
+result is near to 11 mm\ :sup:`2`.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
+
+Find Overlap In Two Layers 
+---------------------------
+
+Find the overlap area between polygons in the first and second layers.
+The result area is returned as polygons.
+
+Input layer (connection): input polygon layer for algorithm, which
+originates from PostGIS database.
+
+Second layer: layer that is compared with the input layer to find the
+overlap area.
+
+Minimum Squared Distance: distance, which squared, represents the
+minimum area allowed for a polygon in the result. For example, taking
+the default value of the field, which is 0.0000001. Assuming that the
+layer CRS is in degrees, this value is equivalent to approximately 11 mm
+at the Equator, and therefore the minimum area of a polygon in the
+result is near to 11 mm\ :sup:`2`.
+
+Filter layer (selected features): polygon layer that filters the input
+and second layer features that intersect the features selected in the
+filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find polygons that aren’t filled by polygons from other layer 
--------------------------------------------------------------
+--------------------------------------------------------------
 
-Finds parts of polygons that are not filled by polygons from another
-layer. The Outer Polygon Table is the layer whose polygons must be
-filled with polygons present in the Inner Polygon Table.
+Find parts of polygons of an outer polygon layer that aren't filled by
+polygons from an inner polygon layer.
 
-Parts of the external polygons that are not filled by inner polygons are
-returned, as well as the respective primary key of the external polygon.
-The name of the primary key field of the Outer Polygon Table, the Outer
-Polygon Table Primary Key, must also be passed as parameter.
+Input layer (connection) (Outer Polygon): input polygon layer for
+algorithm, which originates from PostGIS database, and consists of an
+external polygon layer.
 
-Find Polygons that don’t contain 1 point (Acha polígonos que não contêm 1 ponto)
---------------------------------------------------------------------------------
+Input Primary Key: primary key field for input layer.
 
-Finds polygons that do not contain 1 point belonging to another layer,
-of points. That is, the polygons that do not contain any points or
-contain more than one point.
+Inner Polygon: polygon layer that is compared with the input layer and
+that should fill it.
+
+Minimum Squared Distance: distance, which squared, represents the
+minimum area allowed for a polygon in the result. For example, taking
+the default value of the field, which is 0.0000001. Assuming that the
+layer CRS is in degrees, this value is equivalent to approximately 11 mm
+at the Equator, and therefore the minimum area of a polygon in the
+result is near to 11 mm\ :sup:`2`.
+
+Filter layer (selected features): polygon layer that filters the input
+and inner polygon layer features that intersect the features selected in
+the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
+
+Find Polygons that don’t contain 1 point
+----------------------------------------
+
+Find polygons that don't contain 1 point. That is, they contain more
+than one point or no point.
+
+Input layer (connection): input polygon layer for algorithm, which
+originates from PostGIS database.
+
+Point layer: point layer that is compared with the input layer.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Polygons with Holes 
-------------------------
+-------------------------
 
-Finds polygons that contain holes. It can be useful to detect polygons
-with holes in boundary layers (provinces, counties, etc.), where there
-may be holes, but it is uncommon to have them.
+Find polygons that contain holes.
+
+Input layer (connection): input polygon layer for algorithm, which
+originates from PostGIS database.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Pseudonodes
 ----------------
 
-Finds the pseudonodes of a line layer. This means finding where there is
-a break in geometry, but there is no intersection of lines.
+Find pseudonodes for a line layer. Pseudonodes are nodes that form a
+break in the geometry, but without intersecting lines.
 
-Tolerance is used to signal that two ends of different lines will be
-considered as a node if they are distant less than the tolerance. The
-default tolerance is 0.000001, which is 11 cm in Equator Line. The
-intention of using tolerance is to achieve pseudonode detection even
-where the edges are not perfectly adherent in PostGIS.
+Input layer (connection): input line layer for algorithm, which
+originates from PostGIS database.
 
-Although the extremes whose distance is less than the tolerance are
-considered as a single node in the analysis, two points related to the
-extremes will be returned in the result if they do not have the same
-coordinates and are pseudonodes.
+Input Primary Key: primary key field for input layer.
 
-The excluded field is used to signal that adjacent lines with distinct
-attributes in this field will not be considered as pseudonodes.
+Excluded Field(s): if fields are selected, adjacent features with a
+change in these fields don't generate pseudonodes.
+
+Node Join Tolerance: distance of a node to another line that considers
+the node connected to it.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Repeated Geometries
 ------------------------
 
-Finds duplicated geometries in a layer.
+Find duplicated geometries in a layer.
+
+Input layer (connection): input layer for algorithm, which originates
+from PostGIS database.
+
+Input Primary Key: primary key field for input layer.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Find Undershoot and Overshoot
 -----------------------------
 
-Used to find undershoot and overshoot in a layer of lines. Tolerance is
-the maximum distance for detection. For example, if the distance from a
-dangle to another line is greater than the tolerance, it will not be
-included in the result. The tolerance unit depends on the coordinate
-system, with the standard tolerance set at 0.0001, approximately 11
-meters in the WGS 84 2000 longitude and latitude coordinate system.
+Find undershoot and overshoot for a line layer. Undershoot and overshoot
+are dangles that don't snap to another line: they go beyond or fall
+short of the connection.
+
+Input layer (connection): input line layer for algorithm, which
+originates from PostGIS database.
+
+Node Join Tolerance: distance of a node to another line that considers
+the node connected to it.
+
+Threshold Distance: maximum distance to another line for the dangle to
+be returned in the result. A large value may include unexpected dangles
+in the results. Assuming that the layer CRS is in degrees, this value is
+equivalent to approximately 55 m at the Equator, and therefore dangles
+that are up to nearly 55 m from a line will be included in the result.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.
 
 Return Geometry Without Holes
 -----------------------------
 
-Return the geometries of a layer without their interior rings, also
-known as holes.
+Return geometry of a polygon layer without any holes.
+
+Input layer (connection): input polygon layer for algorithm, which
+originates from PostGIS database.
+
+Input Primary Key: primary key field for input layer.
+
+Filter layer (selected features): polygon layer that filters the input
+features that intersect the features selected in the filter layer.
+
+Filter Primary Key: primary key field for filter layer.

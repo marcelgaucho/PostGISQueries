@@ -9,18 +9,18 @@
 [general]
 name=PostGIS Queries
 qgisMinimumVersion=3.0
-description=Processing plugin-based provider that adds scripts to execute PostGIS queries using the built-in script "gdal:executesql". Provedor do Processing que inclui scripts para executar consultas do PostGIS usando o script "gdal:executesql".
+description=Processing plugin-based provider that adds scripts to execute PostGIS queries using the built-in script "gdal:executesql". | Provedor do Processing que inclui scripts para executar consultas do PostGIS usando o script "gdal:executesql".
             
                
-version=0.2
+version=1.0
 author=Marcel Rotunno (IBGE)
 email=marcelgaucho@yahoo.com.br
 
-about=The scripts are intended to solve common spatial problems, such as finding dangles and pseudonodes in a line layer. To execute the scripts, a layer with a connection to the PostGIS database must be passed, as well as the table name(s) that store the target layer(s). Depending on the script, other parameters may be required.
+about=The scripts are intended to solve common spatial problems, such as finding dangles and pseudonodes in a line layer. To execute the scripts, at least one layer with a connection to the PostGIS database must be passed. Depending on the script, other parameters may be required.
 
       -------------------------------------------------------------------------------------------------------------------------------------
       
-      Os scripts adicionados procuram resolver problemas espaciais comuns, como achar dangles ou pseudonós em uma camada tipo linha. Para executar os scripts, uma camada com conexão ao PostGIS precisa ser passada, além do(s) nome(s) de tabela que armazenam a(s) camada(s) alvo. Dependendo do script, são requeridos ainda outros parâmetros.
+      Os scripts adicionados procuram resolver problemas espaciais comuns, como achar dangles ou pseudonós em uma camada tipo linha. Para executar os scripts, pelo menos uma camada com conexão ao PostGIS precisa ser passada. Dependendo do script, são requeridos ainda outros parâmetros.
 
 tracker=https://github.com/marcelgaucho/PostGISQueries/issues
 repository=https://github.com/marcelgaucho/PostGISQueries
@@ -29,7 +29,10 @@ repository=https://github.com/marcelgaucho/PostGISQueries
 # Recommended items:
 
 # Uncomment the following line and add your changelog:
-changelog=0.2
+changelog=1.0
+      - Remove translation to ease maintenance, remove queries difficult to maintain, add a filter parameter to the queries, extract tablename from vector parameters instead of using text parameters.
+
+      0.2
       - Add Portuguese translation
       
       0.1
@@ -44,7 +47,7 @@ homepage=https://github.com/marcelgaucho/PostGISQueries
 category=Processing
 icon=images/icon.png
 # experimental flag
-experimental=True
+experimental=False
 
 # deprecated flag (applies to the whole plugin, not just a single version)
 deprecated=False

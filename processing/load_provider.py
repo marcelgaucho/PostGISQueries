@@ -27,7 +27,6 @@ from PostGISQueries.processing.algs.find_pseudonodes import FindPseudonodes
 from PostGISQueries.processing.algs.find_polygons_that_arent_filled_by_polygons import PolygonsArentFilledByPolygons
 from PostGISQueries.processing.algs.find_polygons_that_dont_contain_1_point import PolygonsDontContainOnePoint
 from PostGISQueries.processing.algs.find_invalid_polygons import FindInvalidPolygons
-from PostGISQueries.processing.algs.find_gaps_2 import FindGaps2
 from PostGISQueries.processing.algs.find_geometries_with_repeated_vertices import FindGeometriesWithRepeatedVertices
 from PostGISQueries.processing.algs.find_not_simple_lines import FindNotSimpleLines
 from PostGISQueries.processing.algs.find_k_nearest_neighbors_within_distance import FindKNearestNeighborsWithinDistance
@@ -109,7 +108,7 @@ class LoadAlgorithmProvider(QgsProcessingProvider):
         """
         for alg in [FindDangles(), EndpointsDontTouchPolygon(), FindUndershootOvershoot(), ReturnGeometryWithoutHoles(),
                     FindOverlapInTwoLayers(), FindOverlapInOneLayer(), FindPseudonodes(), PolygonsArentFilledByPolygons(),
-                    PolygonsDontContainOnePoint(), FindInvalidPolygons(), FindGaps2(), FindGeometriesWithRepeatedVertices(),
+                    PolygonsDontContainOnePoint(), FindInvalidPolygons(), FindGeometriesWithRepeatedVertices(),
                     FindNotSimpleLines(), FindKNearestNeighborsWithinDistance(), FindEmptyOrNullGeometries(),
                     FindPolygonsWithHoles(), FindGaps(), FindRepeatedGeometries(), FindGeometriesDifferentFromOtherLayer()]:
             self.addAlgorithm(alg)

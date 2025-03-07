@@ -19,15 +19,39 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterString,
-                       QgsProcessingParameterVectorDestination)
+                       QgsProcessingParameterVectorDestination,
+                       QgsProcessingParameterVectorLayer,
+                       QgsProcessingParameterField)
 import processing
 
+def find_table(layer):
+    layer_source = layer.source()
+    layer_source_split = layer_source.split()
+    for source_param in layer_source_split:
+        if source_param.startswith('table'):
+            table = source_param.split('=', maxsplit=1)[1]
+            break
+    else:
+        raise QgsProcessingException('Not found the table parameter in layer')
+        
+    return table    
+
+def find_field(layer, field: str):
+    layer_fields = layer.fields()
+    for layer_field in layer_fields:
+        if layer_field.name() == field:
+            break
+    else:
+        raise QgsProcessingException('Not found the field parameter in layer')
+        
+    return layer_field
 
 class FindGeometriesWithRepeatedVertices(QgsProcessingAlgorithm):
     # Constants used to refer to parameters
     INPUT = 'INPUT'
+    FILTER = 'FILTER'
+    FILTER_PRIMARY_KEY = 'FILTER_PRIMARY_KEY'
     OUTPUT = 'OUTPUT'
-    TABLE = 'TABLE'
 
     def tr(self, string):
         """
@@ -51,27 +75,41 @@ class FindGeometriesWithRepeatedVertices(QgsProcessingAlgorithm):
         return 'topologyscripts'
 
     def shortHelpString(self):
-        return self.tr("Find geometries with repeated vertices.")
+        return self.tr("""Find geometries that have duplicated vertices.        
+        
+                          Input layer (connection): input layer for algorithm, which originates from PostGIS database.
+                          Filter layer (selected features): polygon layer that filters the input features that intersect the features selected in the filter layer.
+                          Filter Primary Key: primary key field for filter layer.                          
+        """)
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
-
-        # We add the input vector features source. It can have any kind of
-        # geometry.
+        # Input and Connection
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
+            QgsProcessingParameterVectorLayer(
                 self.INPUT,
                 self.tr('Input layer (connection)'),
-                [QgsProcessing.TypeVectorLine]
+                [QgsProcessing.TypeVectorAnyGeometry]
+            )
+        )
+        
+        # Filter
+        self.addParameter(
+            QgsProcessingParameterVectorLayer(
+                name=self.FILTER,
+                description=self.tr('Filter layer (selected features)'),
+                types=[QgsProcessing.TypeVectorPolygon],
+                optional=True
             )
         )
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
+        # Filter Primary Key
+        self.addParameter(QgsProcessingParameterField(name=self.FILTER_PRIMARY_KEY,
+                                                      description=self.tr('Filter Primary Key'),
+                                                      defaultValue='id',
+                                                      parentLayerParameterName=self.FILTER,
+                                                      optional=True))
+                                                      
+        # Output Layer
         self.addParameter(
             QgsProcessingParameterVectorDestination(
                 self.OUTPUT,
@@ -79,25 +117,49 @@ class FindGeometriesWithRepeatedVertices(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(QgsProcessingParameterString(self.TABLE,
-                                                       self.tr('Table'),
-                                                       defaultValue=''))
-
-
-
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
+        # Get Parameters as Layers
+        input = self.parameterAsVectorLayer(parameters, self.INPUT, context)
+        filter = self.parameterAsVectorLayer(parameters, self.FILTER, context)
         output = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
-
-        # DO SOMETHING       
-        sql = ('SELECT geom FROM '  
-                    f'{parameters[self.TABLE]} WHERE NOT ST_AsEwkb(ST_RemoveRepeatedPoints(geom)) = ST_AsEwkb(geom)') 
-
+        
+        # Selected features
+        if parameters['FILTER']:
+            selection = filter.selectedFeatures()
+            if not selection:
+                raise QgsProcessingException('No features selected in Filter Layer')
+            
+            # Depending on the type of the Filter Primary Key, build the string with selected values
+            if not parameters['FILTER_PRIMARY_KEY']:
+                raise QgsProcessingException('No field selected for primary key in Filter Layer')
+                                
+            filter_pk_field = find_field(filter, parameters['FILTER_PRIMARY_KEY'])
+            if filter_pk_field.isNumeric():
+                selection_field_list = [str(f[parameters['FILTER_PRIMARY_KEY']]) for f in selection]
+            else:
+                selection_field_list = [f"'{f[ parameters['FILTER_PRIMARY_KEY'] ]}'" for f in selection]
                 
+            selection_field_string = ', '.join(selection_field_list)
+            
+        # Schema.Table for Input and Filter
+        feedback.pushInfo('Finding table of input layer ...')
+        input_table = find_table(input) 
+        if parameters['FILTER']:        
+            feedback.pushInfo('Finding table of filter layer ...')
+            filter_table = find_table(filter)                                                                       
+
+        # Build SQL  
+        if not parameters['FILTER']:
+            sql = ('SELECT geom FROM '  
+                  f'{input_table} WHERE NOT ST_AsEwkb(ST_RemoveRepeatedPoints(geom)) = ST_AsEwkb(geom)') 
+        else:
+            sql = ('SELECT layer.geom FROM '  
+                  f'{input_table} AS layer JOIN {filter_table} AS filter ON ST_Intersects(layer.geom, filter.geom) AND filter.{parameters[self.FILTER_PRIMARY_KEY]} IN ({selection_field_string}) '
+                   'WHERE NOT ST_AsEwkb(ST_RemoveRepeatedPoints(layer.geom)) = ST_AsEwkb(layer.geom)') 
+                   
         feedback.pushInfo(sql)
 
+        # Run query
         found = processing.run("gdal:executesql",
                                    {'INPUT': parameters['INPUT'],
                                    'SQL':sql,

@@ -19,16 +19,29 @@ from qgis.core import (QgsProcessing,
                        QgsProcessingParameterFeatureSource,
                        QgsProcessingParameterFeatureSink,
                        QgsProcessingParameterString,
-                       QgsProcessingParameterVectorDestination)
+                       QgsProcessingParameterVectorDestination,
+                       QgsProcessingParameterVectorLayer,
+                       QgsProcessingParameterField)
 import processing
 
 
+def find_table(layer):
+    layer_source = layer.source()
+    layer_source_split = layer_source.split()
+    for source_param in layer_source_split:
+        if source_param.startswith('table'):
+            table = source_param.split('=', maxsplit=1)[1]
+            break
+    else:
+        raise QgsProcessingException('Not found the table parameter in filter layer')
+        
+    return table
+    
 class FindEmptyOrNullGeometries(QgsProcessingAlgorithm):
     # Constants used to refer to parameters
     INPUT = 'INPUT'
+    LAYER_PRIMARY_KEY = 'LAYER_PRIMARY_KEY'
     OUTPUT = 'OUTPUT'
-    TABLE = 'TABLE'
-    PRIMARY_KEY = 'PRIMARY_KEY'
 
     def tr(self, string):
         """
@@ -52,27 +65,29 @@ class FindEmptyOrNullGeometries(QgsProcessingAlgorithm):
         return 'topologyscripts'
 
     def shortHelpString(self):
-        return self.tr("Find NULL or Empty geometries for a layer.")
+        return self.tr("""Find layer geometries that are either Empty or NULL.        
+        
+                          Input layer (connection): input layer for algorithm, which originates from PostGIS database.
+                          Input Primary Key: primary key field for input layer.
+        """)
 
     def initAlgorithm(self, config=None):
-        """
-        Here we define the inputs and output of the algorithm, along
-        with some other properties.
-        """
-
-        # We add the input vector features source. It can have any kind of
-        # geometry.
+        # Input and Connection
         self.addParameter(
-            QgsProcessingParameterFeatureSource(
+            QgsProcessingParameterVectorLayer(
                 self.INPUT,
                 self.tr('Input layer (connection)'),
                 [QgsProcessing.TypeVectorAnyGeometry]
             )
         )
 
-        # We add a feature sink in which to store our processed features (this
-        # usually takes the form of a newly created vector layer when the
-        # algorithm is run in QGIS).
+        # Input Primary Key
+        self.addParameter(QgsProcessingParameterField(name=self.LAYER_PRIMARY_KEY,
+                                                      description=self.tr('Input Primary Key'),
+                                                      defaultValue='id',
+                                                      parentLayerParameterName=self.INPUT))
+                                                      
+        # Output Layer
         self.addParameter(
             QgsProcessingParameterVectorDestination(
                 self.OUTPUT,
@@ -80,30 +95,21 @@ class FindEmptyOrNullGeometries(QgsProcessingAlgorithm):
             )
         )
 
-        self.addParameter(QgsProcessingParameterString(self.TABLE,
-                                                       self.tr('Table'),
-                                                       defaultValue=''))
-
-        # Input Primary Key
-        self.addParameter(QgsProcessingParameterString(self.PRIMARY_KEY,
-                                                       self.tr('Primary Key'),
-                                                       defaultValue='id'))
-
-
     def processAlgorithm(self, parameters, context, feedback):
-        """
-        Here is where the processing itself takes place.
-        """
+        # Get Parameters as Layers
+        input = self.parameterAsVectorLayer(parameters, self.INPUT, context)
         output = self.parameterAsOutputLayer(parameters, self.OUTPUT, context)
+        
+        # Schema.Table for Input
+        input_table = find_table(input)
 
-        # DO SOMETHING       
-        sql =(f'SELECT {parameters[self.PRIMARY_KEY]}, geom FROM {parameters[self.TABLE]} '  
-                   'WHERE ST_IsEmpty(geom) OR geom IS NULL ') 
-                
-
-                
+        # Build SQL
+        sql =(f'SELECT {parameters[self.LAYER_PRIMARY_KEY]}, geom FROM {input_table} '  
+                    'WHERE ST_IsEmpty(geom) OR geom IS NULL ') 
+                       
         feedback.pushInfo(sql)
 
+        # Run query
         found = processing.run("gdal:executesql",
                                    {'INPUT': parameters['INPUT'],
                                    'SQL':sql,
